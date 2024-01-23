@@ -1,6 +1,7 @@
 package paser
 
 import (
+	"fmt"
 	"monkey/ast"
 	"monkey/lexer"
 	"monkey/token"
@@ -9,17 +10,31 @@ import (
 type Parser struct {
 	l *lexer.Lexer
 
+	errors []string
+
 	currToken token.Token
 	peekToken token.Token
 }
 
 func New(l *lexer.Lexer) *Parser {
-	p := &Parser{l: l}
+	p := &Parser{
+		l:      l,
+		errors: make([]string, 0),
+	}
 
 	p.nextToken()
 	p.nextToken()
 
 	return p
+}
+
+func (p *Parser) Errors() []string {
+	return p.errors
+}
+
+func (p *Parser) peekError(t token.TokenType) {
+	msg := fmt.Sprintf("expected next token to be '%s', get '%s'", t, p.peekToken.Type)
+	p.errors = append(p.errors, msg)
 }
 
 func (p *Parser) nextToken() {
@@ -46,13 +61,15 @@ func (p *Parser) ParseProgram() *ast.Program {
 func (p *Parser) parseProgram() ast.Statement {
 	switch p.currToken.Type {
 	case token.LET:
-		return p.parseLetProgram()
+		return p.parseLetStatement()
+	case token.RETURN:
+		return p.parseReturnStatement()
 	default:
 		return nil
 	}
 }
 
-func (p *Parser) parseLetProgram() ast.Statement {
+func (p *Parser) parseLetStatement() ast.Statement {
 	stmt := &ast.LetStatement{Token: p.currToken}
 
 	if !p.expectPeek(token.IDENT) {
@@ -75,11 +92,24 @@ func (p *Parser) parseLetProgram() ast.Statement {
 	return stmt
 }
 
+func (p *Parser) parseReturnStatement() ast.Statement {
+	stmt := &ast.ReturnStatement{Token: p.currToken}
+	p.nextToken()
+
+	// TODO expression handling
+
+	for !p.currTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+	return stmt
+}
+
 func (p *Parser) expectPeek(t token.TokenType) bool {
 	if p.peekTokenIs(t) {
 		p.nextToken()
 		return true
 	}
+	p.peekError(t)
 	return false
 }
 
