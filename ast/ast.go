@@ -1,9 +1,13 @@
 package ast
 
-import "monkey/token"
+import (
+	"bytes"
+	"monkey/token"
+)
 
 type Node interface {
 	TokenLiteral() string
+	String() string
 }
 
 type Statement interface {
@@ -20,6 +24,14 @@ type Program struct {
 	Statements []Statement
 }
 
+func (p *Program) String() string {
+	var writer bytes.Buffer
+	for _, stmt := range p.Statements {
+		writer.WriteString(stmt.String())
+	}
+	return writer.String()
+}
+
 func (p *Program) TokenLiteral() string {
 	if len(p.Statements) > 0 {
 		return p.Statements[0].TokenLiteral()
@@ -32,6 +44,19 @@ type LetStatement struct {
 	Token token.Token
 	Name  *Identifier
 	Value Expression
+}
+
+func (ls *LetStatement) String() string {
+	var writer bytes.Buffer
+	writer.WriteString(ls.TokenLiteral() + " ")
+	writer.WriteString(ls.Name.String())
+	writer.WriteString(" = ")
+
+	if ls.Value != nil {
+		writer.WriteString(ls.Value.String())
+	}
+	writer.WriteString(";")
+	return writer.String()
 }
 
 func (ls *LetStatement) statementNode() {}
@@ -51,9 +76,23 @@ func (id *Identifier) TokenLiteral() string {
 	return id.Token.Literal
 }
 
+func (id *Identifier) String() string {
+	return id.Value
+}
+
 type ReturnStatement struct {
 	Token       token.Token
 	ReturnValue Expression
+}
+
+func (rs *ReturnStatement) String() string {
+	var writer bytes.Buffer
+	writer.WriteString(rs.TokenLiteral() + " ")
+	if rs.ReturnValue != nil {
+		writer.WriteString(rs.ReturnValue.String())
+	}
+	writer.WriteString(";")
+	return writer.String()
 }
 
 func (rs *ReturnStatement) statementNode() {}
@@ -61,3 +100,84 @@ func (rs *ReturnStatement) statementNode() {}
 func (rs *ReturnStatement) TokenLiteral() string {
 	return rs.Token.Literal
 }
+
+type ExpressionStatement struct {
+	Token      token.Token
+	Expression Expression
+}
+
+func (es *ExpressionStatement) String() string {
+	if es.Expression != nil {
+		return es.Expression.String()
+	}
+	return ""
+}
+
+func (es *ExpressionStatement) statementNode() {}
+
+func (es *ExpressionStatement) TokenLiteral() string {
+	return es.Token.Literal
+}
+
+type IntegerLiteral struct {
+	Token token.Token
+	Value int64
+}
+
+func (il *IntegerLiteral) String() string {
+	return il.Token.Literal
+}
+
+func (il *IntegerLiteral) expressionNode() {}
+
+func (il *IntegerLiteral) TokenLiteral() string {
+	return il.Token.Literal
+}
+
+type PrefixExpression struct {
+	Token    token.Token
+	Operator string
+	Right    Expression
+}
+
+func (pe *PrefixExpression) TokenLiteral() string {
+	return pe.Token.Literal
+}
+
+func (pe *PrefixExpression) String() string {
+	var writer bytes.Buffer
+
+	writer.WriteString("(")
+	writer.WriteString(pe.Operator)
+	writer.WriteString(pe.Right.String())
+	writer.WriteString(")")
+
+	return writer.String()
+}
+
+func (pe *PrefixExpression) expressionNode() {}
+
+type InfixExpression struct {
+	Token    token.Token
+	Left     Expression
+	Operator string
+	Right    Expression
+}
+
+func (pe *InfixExpression) TokenLiteral() string {
+	return pe.Token.Literal
+}
+
+func (pe *InfixExpression) String() string {
+	var writer bytes.Buffer
+
+	writer.WriteString("(")
+	writer.WriteString(pe.Left.String())
+	writer.WriteString(" " + pe.Operator + " ")
+	writer.WriteString(pe.Right.String())
+	writer.WriteString(")")
+
+	return writer.String()
+}
+
+func (pe *InfixExpression) expressionNode() {}
