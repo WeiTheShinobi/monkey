@@ -120,6 +120,20 @@ func TestNextToken(t *testing.T) {
 				{token.NOT_EQ, "!="},
 			},
 		},
+		{
+			"string",
+			`"foobar"`,
+			[]wanted{
+				{token.STRING, "foobar"},
+			},
+		},
+		{
+			"string2",
+			`"foo bar"`,
+			[]wanted{
+				{token.STRING, "foo bar"},
+			},
+		},
 	}
 
 	for _, tt := range testCases {
