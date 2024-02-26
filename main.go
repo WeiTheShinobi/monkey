@@ -4,14 +4,9 @@ import (
 	"fmt"
 	"monkey/repl"
 	"os"
-	"os/user"
 )
 
 func main() {
-	u, err := user.Current()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("Hi %s! This is Monkey programming language REPL", u.Name)
+	fmt.Printf("Hi! This is Monkey programming language REPL")
 	repl.Start(os.Stdin, os.Stdout)
 }
