@@ -6,7 +6,6 @@ import (
 	"io"
 	"monkey/compiler"
 	"monkey/lexer"
-	"monkey/object"
 	"monkey/parser"
 	"monkey/vm"
 )
@@ -15,7 +14,6 @@ const PROMPT = ">> "
 
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
-	env := object.NewEnvironment()
 
 	for {
 		_, _ = fmt.Fprintf(out, PROMPT)
