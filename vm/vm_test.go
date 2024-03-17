@@ -37,6 +37,23 @@ func TestBooleanExpressions(t *testing.T) {
 	runVmTests(t, []vmTestCase{
 		{"true", true},
 		{"false", false},
+		{"1 < 2", true},
+		{"1 > 2", false},
+		{"1 < 1", false},
+		{"1 > 1", false},
+		{"1 == 1", true},
+		{"1 != 1", false},
+		{"1 == 2", false},
+		{"1 != 2", true},
+		{"true == true", true},
+		{"false == false", true},
+		{"true == false", false},
+		{"true != false", true},
+		{"false != true", true},
+		{"(1 < 2) == true", true},
+		{"(1 < 2) == false", false},
+		{"(1 > 2) == true", false},
+		{"(1 > 2) == false", true},
 	})
 }
 
@@ -57,34 +74,34 @@ func runVmTests(t *testing.T, tests []vmTestCase) {
 		}
 
 		stackElem := vm.LastPoppedStackElem()
-		testExpectedObject(t, tt.expected, stackElem)
+		testExpectedObject(t, tt, stackElem)
 	}
 }
 
-func testExpectedObject(t *testing.T, expected interface{}, actual object.Object) {
+func testExpectedObject(t *testing.T, tt vmTestCase, actual object.Object) {
 	t.Helper()
 
-	switch expected := expected.(type) {
+	switch expected := tt.expected.(type) {
 	case int:
 		if err := testIntegerObject(int64(expected), actual); err != nil {
 			t.Errorf("testIntegerObject failed: %s", err)
 		}
 	case bool:
-		if err := testBooleanObject(expected, actual); err != nil {
+		if err := testBooleanObject(expected, actual, tt.input); err != nil {
 			t.Errorf("testBooleanObject failed: %s", err)
 		}
 	}
 }
 
-func testBooleanObject(expected bool, actual object.Object) error {
+func testBooleanObject(expected bool, actual object.Object, input string) error {
 	result, ok := actual.(*object.Boolean)
 	if !ok {
 		return fmt.Errorf("object is not Boolean. got=%T (%+v)",
 			actual, actual)
 	}
 	if result.Value != expected {
-		return fmt.Errorf("object has wrong value. got=%t %t",
-			result.Value, expected)
+		return fmt.Errorf("object has wrong value. got=%t %t, input=\"%s\"",
+			result.Value, expected, input)
 	}
 	return nil
 }
