@@ -68,6 +68,18 @@ func (c *Compiler) Compile(node ast.Node) error {
 		default:
 			return fmt.Errorf("unknown operator %s", node.Operator)
 		}
+	case *ast.PrefixExpression:
+		if err := c.Compile(node.Right); err != nil {
+			return err
+		}
+		switch node.Operator {
+		case "!":
+			c.emit(code.OpBang)
+		case "-":
+			c.emit(code.OpMinus)
+		default:
+			return fmt.Errorf("unknown operator %s", node.Operator)
+		}
 	case *ast.Boolean:
 		if node.Value {
 			c.emit(code.OpTrue)
