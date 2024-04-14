@@ -144,6 +144,13 @@ func (c *Compiler) Compile(node ast.Node) error {
 				return err
 			}
 		}
+	case *ast.ArrayLiteral:
+		for _, ele := range node.Elements {
+			if err := c.Compile(ele); err != nil {
+				return err
+			}
+		}
+		c.emit(code.OpArray, len(node.Elements))
 	case *ast.Boolean:
 		if node.Value {
 			c.emit(code.OpTrue)
