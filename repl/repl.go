@@ -6,6 +6,7 @@ import (
 	"io"
 	"monkey/compiler"
 	"monkey/lexer"
+	"monkey/object"
 	"monkey/parser"
 	"monkey/vm"
 )
@@ -15,9 +16,14 @@ const PROMPT = ">> "
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
 
+	var constants []object.Object
+	globals := make([]object.Object, vm.GlobalsSize)
+	symbolTable := compiler.NewSymbolTable()
+
 	for {
-		_, _ = fmt.Fprintf(out, PROMPT)
-		if !scanner.Scan() {
+		fmt.Fprintf(out, PROMPT)
+		scanned := scanner.Scan()
+		if !scanned {
 			return
 		}
 
@@ -31,14 +37,19 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		comp := compiler.New()
-		if err := comp.Compile(program); err != nil {
+		comp := compiler.NewWithState(symbolTable, constants)
+		err := comp.Compile(program)
+		if err != nil {
 			fmt.Fprintf(out, "Woops! Compilation failed:\n %s\n", err)
 			continue
 		}
 
-		machine := vm.New(comp.Bytecode())
-		if err := machine.Run(); err != nil {
+		code := comp.Bytecode()
+		constants = code.Constants
+
+		machine := vm.NewWithGlobalsStore(code, globals)
+		err = machine.Run()
+		if err != nil {
 			fmt.Fprintf(out, "Woops! Executing bytecode failed:\n %s\n", err)
 			continue
 		}
@@ -46,7 +57,6 @@ func Start(in io.Reader, out io.Writer) {
 		lastPopped := machine.LastPoppedStackElem()
 		io.WriteString(out, lastPopped.Inspect())
 		io.WriteString(out, "\n")
-
 	}
 }
 
