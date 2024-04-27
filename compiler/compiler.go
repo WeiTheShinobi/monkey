@@ -210,6 +210,11 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 		c.emit(code.OpReturnValue)
+	case *ast.CallExpression:
+		if err := c.Compile(node.Function); err != nil {
+			return err
+		}
+		c.emit(code.OpCall)
 	case *ast.Boolean:
 		if node.Value {
 			c.emit(code.OpTrue)
