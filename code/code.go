@@ -114,7 +114,7 @@ var definitions = map[Opcode]*Definition{
 	OpArray:         {"OpArray", []int{2}},
 	OpHash:          {"OpHash", []int{2}},
 	OpIndex:         {"OpIndex", []int{}},
-	OpCall:          {"OpCall", []int{}},
+	OpCall:          {"OpCall", []int{1}},
 	OpReturnValue:   {"OpReturnValue", []int{}},
 	OpReturn:        {"OpReturn", []int{}},
 	OpGetLocal:      {"OpGetLocal", []int{1}},
@@ -180,5 +180,5 @@ func ReadUint16(ins Instructions) uint16 {
 }
 
 func ReadUint8(ins Instructions) uint8 {
-	return uint8(ins[0])
+	return ins[0]
 }
